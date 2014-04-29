@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<QCARConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="qcar_config.xsd">
-  <Tracking>
-    <ImageTarget name="card_mtg_serraangel" size="2.000000 2.794760" />
-    <ImageTarget name="card_greeting" size="3.000000 6.894009" />
-    <ImageTarget name="card_mtg_plains" size="2.000000 2.787980" />
-  </Tracking>
-</QCARConfig>

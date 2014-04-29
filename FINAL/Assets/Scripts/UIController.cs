@@ -49,7 +49,7 @@ public class UIController : MonoBehaviour {
 			// if the screen is tapped
 			if (Input.GetMouseButtonUp(0) || Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended) {
 				Ray castRay;
-				if (Application.platform == RuntimePlatform.Android) {
+				if (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer) {
 					castRay = Camera.main.ScreenPointToRay(new Vector3(Input.GetTouch(0).position.x, Input.GetTouch(0).position.y, 0));
 				}
 				else {
