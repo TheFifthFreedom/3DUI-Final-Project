@@ -7,6 +7,7 @@ public class EnemyConroller : MonoBehaviour {
 	public float speed;
 	public float range;
 	public float maxHealth;
+	public int cashOnKill;
 
 	private float health;
 
@@ -14,20 +15,23 @@ public class EnemyConroller : MonoBehaviour {
 	private LinkedList<Vector3> pathPoints;
 	private Vector3 currentPoint;
 
+	private UIController ui;
+
 	private const float ERROR = 0.5f;
 
 	public static int id = 0;
 
 	//private Transform[] path;
 
-	private float dist;
+	//private float dist;
 	
 	// Use this for initialization
 	void Start () {
 		id++;
-		dist = 0.0f;
+		//dist = 0.0f;
 		health = maxHealth;
 		pathPoints = GameObject.Find("Path").GetComponent<PathScript>().GetPathPoints();
+		ui = Camera.main.GetComponent<UIController>();
 	}
 	
 	// Update is called once per frame
@@ -42,21 +46,30 @@ public class EnemyConroller : MonoBehaviour {
 		}
 		else {
 			Destroy(gameObject);
+			ui.lives--;
 		}
 
 		if (health <= 0) {
 			Destroy(gameObject);
+			ui.cash += cashOnKill;
 		}
 	}
 
 	void OnTriggerEnter(Collider other) {
 		if (other.gameObject.tag == "Projectile") {
-			health -= 1; // replace with projectile's damage value
+			DealDamage(1);
 		}
 	}
 
 	private Vector3 CopyVector(Vector3 v) {
 		return new Vector3(v.x, v.y, v.z);
+	}
+
+	public void DealDamage(float dam) {
+		health -= dam;
+		// adjust color to reflect damage
+		float newRed = ((float) health / maxHealth) * gameObject.renderer.material.GetColor("_Color").r;
+		gameObject.renderer.material.SetColor("_Color", new Color(newRed, 0, 0));
 	}
 
 }

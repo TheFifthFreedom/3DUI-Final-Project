@@ -1,27 +1,29 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
-
-// TODO: FIRING during play mode
 public class UIController : MonoBehaviour {
 
 	// selection indicator prefabs
 	public GameObject selectionCollider, selectionIndicator;
 
 	// tower prefabs
-	public GameObject cannonPrefab, rocketLauncherPrefab;
+	public GameObject basicCannon, basicRocketLauncher, basicRadiator;
 
 	// minimap camera
 	public Camera minimapCamera;
 
 	private GameObject newTower; // temporary for creating new towers
-	private SpawnController spawner; // spawn controler
-	private bool selection; // true if there is a current selection
+	private SpawnController spawner; // spawn controller 
 	private GameObject selectedObject; // the currently selected object
+	private TowerController selectedTowerInfo; // to get info on selected tower
 	private string colliderTag; // tag of collider for raycasting
 	private GameObject vCollider, vIndicator;
+
 	private bool repositionTower;
-	private bool playMode;
+	private bool playMode, behindTurret;
+	public int waveNumber, lives, cash;
+
+	private const int PRICE_CANNON = 10, PRICE_ROCKET = 20, PRICE_RADIATOR = 35;
 
 	// Use this for initialization
 	void Start () {
@@ -58,7 +60,6 @@ public class UIController : MonoBehaviour {
 				RaycastHit hit;
 				// cast a ray through the touch point and see if it hits a tower
 				if (Physics.Raycast(castRay, out hit)) {
-					selection = true;
 					colliderTag = hit.collider.tag;
 					if (colliderTag == "Tower") {
 						// if a tower is tapped, deselect everything and select the tapped tower
@@ -90,14 +91,16 @@ public class UIController : MonoBehaviour {
 		selectedObject = o;
 		// sight radius
 		vCollider = (GameObject) Instantiate(selectionCollider, o.transform.position, Quaternion.identity);
-		float diameter = ((SphereCollider) o.collider).radius * 6;
+		float diameter = o.transform.localScale.y * ((SphereCollider) o.collider).radius * 2;
 		vCollider.transform.localScale = new Vector3(diameter, diameter, diameter);
 		vCollider.transform.parent = o.transform;
 		// small white sphere around tower
 		vIndicator = (GameObject) Instantiate(selectionIndicator, o.transform.position, Quaternion.identity);
-		diameter = o.transform.localScale.y * 4;
+		diameter = o.transform.localScale.y * 3;
 		vIndicator.transform.localScale = new Vector3(diameter, diameter, diameter);
 		vIndicator.transform.parent = o.transform;
+		// get info to display
+		selectedTowerInfo = o.GetComponent<TowerController>();
 	}
 
 	// deselects the selected object by destroying the indicators and nullifying the selection
@@ -116,8 +119,13 @@ public class UIController : MonoBehaviour {
 			if (colliderTag == "Ground") {
 				newTower = (GameObject) Instantiate(tower, hit.point, Quaternion.identity);
 				Select(newTower);
+				repositionTower = true;
 			}
 		}
+	}
+
+	public void SetBehindTurret(bool b) {
+		behindTurret = b;
 	}
 
 	void OnGUI() {
@@ -125,11 +133,12 @@ public class UIController : MonoBehaviour {
 		// display aiming reticle
 		GUIStyle textBox = new GUIStyle(GUI.skin.box);
 		textBox.fontSize = 30;
-		textBox.fontStyle = FontStyle.Bold;
 		GUI.Box (new Rect (Screen.width / 2 - 20, Screen.height / 2 - 20, 40, 40), "+", textBox);
 
 		// display lives and cash
-		GUI.Box (new Rect (20, 20, 250, 80), "LIVES: 150\nCASH: $800", textBox);
+		textBox.fontStyle = FontStyle.Bold;
+		textBox.alignment = TextAnchor.MiddleLeft;
+		GUI.Box (new Rect (20, 20, 250, 110), "WAVE: " + waveNumber + "\nLIVES: " + lives + "\nCASH: $" + cash, textBox);
 
 		// display buttons
 		GUIStyle customButton = new GUIStyle(GUI.skin.button);
@@ -137,52 +146,77 @@ public class UIController : MonoBehaviour {
 		customButton.fontStyle = FontStyle.Bold;
 		// if we are in play phase...
 		if (playMode) {
-			// firing during play mode
-			if (GUI.Button(new Rect (Screen.width - 220, Screen.height / 2 - 100, 200, 200), "FIRE!!", customButton)) {
-				// firing goes here!!!!!
-			}
 			// if all enemies are destroyed and the spawner has deactivated, play phase is over
-			if (spawner.active == false && GameObject.FindGameObjectWithTag("Enemy") == null) {
+			if (spawner.isActive == false && GameObject.FindGameObjectWithTag("Enemy") == null) {
 				playMode = false;
 			}
 		}
-		// if we are in build phase
-		else {
-			// if nothing is selected, show buttons for building towers
-			if (selectedObject == null) {
-				if (GUI.Button (new Rect (Screen.width - 440, Screen.height - 150, 200, 130), "BUILD\nCANNON", customButton)) {
-					CreateTowerAtCamera(cannonPrefab);
-					repositionTower = true;
+		GUI.enabled = !playMode;
+		// if start next wave is tapped, activate spawner and play mode
+		if (GUI.Button (new Rect (Screen.width - 200, 20, 180, 130), "START\nNEXT WAVE", customButton)) {
+			spawner.isActive = true;
+			spawner.enemyHealthAtSpawn++;
+			playMode = true;
+			waveNumber++;
+		}
+		GUI.enabled = true;
+		// build controls
+		// if nothing is selected, show buttons for building towers
+		if (selectedObject == null) {
+			if (!behindTurret) {
+				GUI.enabled = cash >= PRICE_CANNON;
+				if (GUI.Button (new Rect (Screen.width - 600, Screen.height - 150, 180, 130), "BUILD\nCANNON\n-- $" + PRICE_CANNON + " --", customButton)) {
+					CreateTowerAtCamera(basicCannon);
 				}
-				if (GUI.Button (new Rect (Screen.width - 220, Screen.height - 150, 200, 130), "BUILD\nROCKET\nLAUNCHER", customButton)) {
-					CreateTowerAtCamera(rocketLauncherPrefab);
-					repositionTower = true;
+				GUI.enabled = cash >= PRICE_ROCKET;
+				if (GUI.Button (new Rect (Screen.width - 400, Screen.height - 150, 180, 130), "BUILD\nLAUNCHER\n-- $" + PRICE_ROCKET + " --", customButton)) {
+					CreateTowerAtCamera(basicRocketLauncher);
+				}
+				GUI.enabled = cash >= PRICE_RADIATOR;
+				if (GUI.Button (new Rect (Screen.width - 200, Screen.height - 150, 180, 130), "BUILD\nRADIATOR\n-- $" + PRICE_RADIATOR + " --", customButton)) {
+					CreateTowerAtCamera(basicRadiator);
+				}
+				GUI.enabled = true;
+			}
+		}
+		// otherwise...
+		else {
+			// show object properties
+			textBox.fontSize = 22;
+			string info = "SELECTED TOWER\n\n";
+			info += "TYPE: " + selectedTowerInfo.towerType + "\n\n";
+			info += "DAMAGE: " + selectedTowerInfo.damage + "\n";
+			info += "RATE: " + selectedTowerInfo.reloadTime + " s\n";
+			info += "RANGE: " + ((SphereCollider) selectedTowerInfo.gameObject.collider).radius * 3;
+			GUI.Box (new Rect (20, 150, 250, 190), info, textBox);
+
+			// if we are moving a tower, show button for placing tower
+			if (repositionTower) {
+				if (GUI.Button (new Rect (Screen.width - 400, Screen.height - 150, 180, 130), "PLACE\nTOWER", customButton)) {;
+					repositionTower = false;
+					// PAY MONEY$$$
+					if (selectedTowerInfo.towerType == TowerController.TowerType.Cannon) cash -= PRICE_CANNON;
+					else if (selectedTowerInfo.towerType == TowerController.TowerType.Launcher) cash -= PRICE_ROCKET;
+					else if (selectedTowerInfo.towerType == TowerController.TowerType.Radiator) cash -= PRICE_RADIATOR;
+					DeselectAll();
+				}
+				if (GUI.Button (new Rect (Screen.width - 200, Screen.height - 150, 180, 130), "CANCEL", customButton)) {;
+					repositionTower = false;
+					Destroy(selectedObject);
+					DeselectAll();
 				}
 			}
-			// otherwise...
+			// else, show buttons for moving or selling selected tower
 			else {
-				// if we are moving a tower, show button for placing tower
-				if (repositionTower) {
-					if (GUI.Button (new Rect (Screen.width - 220, Screen.height - 150, 200, 130), "PLACE\nTOWER", customButton)) {;
-						repositionTower = false;
-						DeselectAll();
-					}
-				}
-				// else, show buttons for moving or selling selected tower
-				else {
-					if (GUI.Button (new Rect (Screen.width - 440, Screen.height - 150, 200, 130), "MOVE\nSELECTED\nTOWER", customButton)) {;
+				if (!behindTurret) {
+					if (GUI.Button (new Rect (Screen.width - 400, Screen.height - 150, 180, 130), "MOVE\nSELECTED\nTOWER", customButton)) {;
 						repositionTower = true;
 					}
-					if (GUI.Button (new Rect (Screen.width - 220, Screen.height - 150, 200, 130), "SELL\nSELECTED\nTOWER", customButton)) {;
+					if (GUI.Button (new Rect (Screen.width - 200, Screen.height - 150, 180, 130), "SELL\nSELECTED\nTOWER", customButton)) {;
 						Destroy(selectedObject);
 						// add $$$$$$$$
 					}
 				}
-			}
-			// if start next wave is tapped, activate spawner and play mode
-			if (GUI.Button (new Rect (Screen.width - 220, 20, 200, 130), "START\nNEXT WAVE", customButton)) {
-				spawner.active = true;
-				playMode = true;
 			}
 		}
 

@@ -3,11 +3,12 @@ using System.Collections;
 
 public class SpawnController : MonoBehaviour {
 
-	public bool active;
+	public bool isActive;
 	public float spawnRate;
 	public int enemiesPerRound;
 	public GameObject enemyObject;
 	public GameObject spawner;
+	public int enemyHealthAtSpawn;
 
 	private float spawnTimer;
 	private int enemiesSpawned;
@@ -18,27 +19,30 @@ public class SpawnController : MonoBehaviour {
 	void Start () {
 		spawnTimer = 0.0f;
 		enemiesSpawned = 0;
+		enemyHealthAtSpawn = 0;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (active) {
+		if (isActive) {
 			spawnTimer += Time.deltaTime;
 			if (spawnTimer >= spawnRate) {
-				Instantiate(enemyObject, spawner.transform.position, spawner.transform.rotation);
+				GameObject en = (GameObject) Instantiate(enemyObject, spawner.transform.position, spawner.transform.rotation);
+				en.GetComponent<EnemyConroller>().maxHealth = enemyHealthAtSpawn;
+				en.GetComponent<EnemyConroller>().cashOnKill = enemyHealthAtSpawn;
 				spawnTimer = 0.0f;
 				enemiesSpawned++;
 			}
 			if (enemiesSpawned >= enemiesPerRound) {
-				active = false;
+				isActive = false;
 				enemiesSpawned = 0;
 			}
 		}
 
-		if (!active && Input.GetKeyDown (KeyCode.Space)) {
+		if (!isActive && Input.GetKeyDown (KeyCode.Space)) {
 			
 			Debug.Log ("next wave");
-			active = true;
+			isActive = true;
 		}
 	}
 }

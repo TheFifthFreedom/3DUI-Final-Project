@@ -14,7 +14,7 @@ GameObject:
   - 54: {fileID: 5400000}
   - 108: {fileID: 10800000}
   - 114: {fileID: 11400000}
-  m_Layer: 2
+  m_Layer: 0
   m_Name: Cube Enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -74,7 +74,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!65 &6500000
 BoxCollider:
   m_ObjectHideFlags: 1
@@ -136,6 +136,7 @@ MonoBehaviour:
   speed: 20
   range: 100
   maxHealth: 5
+  cashOnKill: 0
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1
