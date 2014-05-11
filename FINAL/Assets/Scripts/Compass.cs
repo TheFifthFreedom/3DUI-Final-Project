@@ -1,45 +1,44 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Compass : MonoBehaviour {
+public class Compass2 : MonoBehaviour {
 
-	Camera cam; // Camera to use
-	GameObject target; // Target to point at
-	Vector3 targetPosition; // Target position on screen
-	Vector3 screenMiddle; //Middle of the screen
+	Camera cam;
+	GameObject target;
 
 	// Use this for initialization
 	void Start () {
 		cam = GameObject.Find("MiniMapCamera").camera;
-		target = GameObject.Find("ARCamera");
-		//Get the targets position on screen into a Vector3
-		targetPosition = cam.WorldToScreenPoint(target.transform.position);
-		//Get the middle of the screen into a Vector3
-		screenMiddle = new Vector3 (Screen.width/2, Screen.height/2, 0);
+		target = GameObject.Find ("Main Camera");
+		transform.renderer.material.color = Color.red;
 	}
 	
 	// Update is called once per frame
 	void Update () {
+	
+		renderer.enabled = false;
+		
+		Vector3 v3Pos = cam.WorldToViewportPoint(target.transform.position);
+		
+		if (v3Pos.z < cam.nearClipPlane)
+			return;  // Object is behind the camera
+		
+		if (v3Pos.x >= 0.0f && v3Pos.x <= 1.0f && v3Pos.y >= 0.0f && v3Pos.y <= 1.0f)
+			return; // Object center is visible
+		
+		renderer.enabled = true;
+		v3Pos.x -= 0.5f;  // Translate to use center of viewport
+		v3Pos.y -= 0.5f; 
+		v3Pos.z = 0;      // I think I can do this rather than do a 
+		//   a full projection onto the plane
+		
+		float fAngle = Mathf.Atan2 (v3Pos.x, v3Pos.y);
+		transform.localEulerAngles = new Vector3(0.0f, -fAngle * Mathf.Rad2Deg, 0.0f);
+		
+		v3Pos.x = 0.5f * Mathf.Sin (fAngle) + 0.5f;  // Place on ellipse touching 
+		v3Pos.y = 0.5f * Mathf.Cos (fAngle) + 0.5f;  //   side of viewport
+		v3Pos.z = cam.nearClipPlane + 100f;  // Looking from neg to pos Z;
+		transform.position = cam.ViewportToWorldPoint(v3Pos);
 
-		//Get the targets position on screen into a Vector3
-		targetPosition = cam.WorldToScreenPoint(target.transform.position);
-		//Compute the angle from screenMiddle to targetPos
-		float tarAngle = (Mathf.Atan2(targetPosition.x - screenMiddle.x, Screen.height - targetPosition.y - screenMiddle.y) * Mathf.Rad2Deg) + 90;
-		if (tarAngle < 0) {
-			tarAngle += 360;	
-		}
-
-		//Calculate the angle from the camera to the target  
-		Vector3 targetDirection = target.transform.position - cam.transform.position;
-		Vector3 forward = cam.transform.forward;
-		float angle = Vector3.Angle (targetDirection, forward);
-
-		//If the angle exceeds 90deg inverse the rotation to point correctly
-		if (angle < 90) {
-			transform.localRotation = Quaternion.Euler(-tarAngle, 90, 270);
-		} 
-		else {
-			transform.localRotation = Quaternion.Euler(tarAngle, 270, 90);	
-		}
 	}
 }

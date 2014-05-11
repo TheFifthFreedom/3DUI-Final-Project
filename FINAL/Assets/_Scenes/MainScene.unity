@@ -2352,7 +2352,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mTrackableName: target
-  mPreviousScale: {x: 28.2111893, y: 28.2111893, z: 28.2111893}
+  mPreviousScale: {x: 5.17550993, y: 5.17550993, z: 5.17550993}
   mPreserveChildSize: 0
   mInitializedInEditor: 1
   mDataSetPath: QCAR/final_db.xml
