@@ -112,7 +112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c662c47812adf84a94b0425b9344947, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 200
+  speed: 100
   range: 45
   projectileType: 0
   explosionPrefab: {fileID: 0}

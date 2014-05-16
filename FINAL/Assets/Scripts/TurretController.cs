@@ -7,19 +7,31 @@ public class TurretController : MonoBehaviour {
 	public Transform muzzlePosition;
 	public GameObject muzzleEffect;
 	public GameObject projectileObject;
+	public GameObject entryCollider;
 	public float fireRate;
 
 	private bool fireEnabled;
 	private float nextFireTime;
-	private AudioSource enterSound, fireSound;
+	private AudioSource enterSound, fireSound, cashSound, damageSound;
 	private UIController ui;
+	private GameObject entryZone;
 
 	// Use this for initialization
 	void Start () {
 		nextFireTime = Time.time;
 		enterSound = gameObject.GetComponents<AudioSource>()[0];
 		fireSound = gameObject.GetComponents<AudioSource>()[1];
+		cashSound = gameObject.GetComponents<AudioSource>()[2];
+		damageSound = gameObject.GetComponents<AudioSource>()[3];
 		ui = Camera.main.GetComponent<UIController>();
+		//Transform cTransform = ((SphereCollider) gameObject.collider).transform;
+		SphereCollider sCollider = (SphereCollider) gameObject.collider;
+		float sRadius = sCollider.radius;// * gameObject.transform.localScale.y;
+		//Debug.Log (sRadius);
+		entryZone = (GameObject) Instantiate (entryCollider, Vector3.zero, Quaternion.identity);
+		entryZone.transform.parent = gameObject.transform;
+		entryZone.transform.localPosition = new Vector3(sCollider.center.x, sCollider.center.y, sCollider.center.z);
+		entryZone.transform.localScale = new Vector3 (sRadius*2, sRadius*2, sRadius*2);
 	}
 	
 	// Update is called once per frame
@@ -67,23 +79,36 @@ public class TurretController : MonoBehaviour {
 			customButton.fontSize = 24;
 			customButton.fontStyle = FontStyle.Bold;
 			// firing during play mode
-			if (GUI.RepeatButton(new Rect (Screen.width - 200, Screen.height / 2 - 100, 180, 200), "-- FIRE! --", customButton)) {
+			if (GUI.RepeatButton(new Rect (Screen.width - 200, Screen.height / 2 - 100, 180, 200), "-- FIRE! --", customButton)
+			    || Application.platform == RuntimePlatform.WindowsEditor && Input.GetKey(KeyCode.Space)) {
 				// firing goes here!!!!!
 				if (Time.time >= nextFireTime)  {
 					fireSound.Play();
 					Instantiate(muzzleEffect, muzzlePosition.position, muzzlePosition.rotation);
 
 					// "fire" the shot
-					/*
+
 					Ray castRay = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
 					RaycastHit hit;
 					if (Physics.Raycast(castRay, out hit)) {
 						//Debug.Log("HIT!");
 						if (hit.collider.tag == "Enemy") {
-							//hit.collider.gameObject.GetComponent<EnemyConroller>().DealDamage(1);
+							hit.collider.gameObject.GetComponent<EnemyConroller>().DealDamage(1);
+						}
+						else if (hit.collider.tag == "ItemCrate") {
+							CrateController c = hit.collider.gameObject.GetComponent<CrateController>();
+							if (c.crateFunction == CrateController.CrateFunction.Money) {
+								ui.cash += c.cashAmount;
+								cashSound.Play();
+							}
+							else {
+								ui.lives -= c.damageAmount;
+								damageSound.Play();
+							}
+							Destroy(hit.collider.gameObject);
 						}
 					}
-					*/
+
 
 					GameObject projectile = (GameObject) Instantiate(projectileObject, muzzlePosition.position, muzzlePosition.rotation);
 					projectile.transform.parent = this.transform;

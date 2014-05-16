@@ -30,7 +30,7 @@ public class EnemyConroller : MonoBehaviour {
 		id++;
 		//dist = 0.0f;
 		health = maxHealth;
-		pathPoints = GameObject.Find("Path").GetComponent<PathScript>().GetPathPoints();
+		pathPoints = GameObject.Find("SpawnLocation").GetComponent<PathScript>().GetRandomPath();
 		ui = Camera.main.GetComponent<UIController>();
 	}
 	
@@ -46,7 +46,7 @@ public class EnemyConroller : MonoBehaviour {
 		}
 		else {
 			Destroy(gameObject);
-			ui.lives--;
+			ui.lives -= (int) health;
 		}
 
 		if (health <= 0) {
@@ -57,7 +57,7 @@ public class EnemyConroller : MonoBehaviour {
 
 	void OnTriggerEnter(Collider other) {
 		if (other.gameObject.tag == "Projectile") {
-			DealDamage(1);
+			DealDamage(other.gameObject.transform.parent.gameObject.GetComponent<TowerController>().damage);
 		}
 	}
 

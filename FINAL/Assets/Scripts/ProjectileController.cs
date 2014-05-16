@@ -26,7 +26,7 @@ public class ProjectileController : MonoBehaviour {
 		}
 
 		if (projectileType == ProjectileType.Radiation) {
-			transform.localScale = transform.localScale + new Vector3(dt*speed, dt*speed, dt*speed);
+			transform.localScale = transform.localScale + new Vector3(dt*speed/2, dt*speed/2, dt*speed/2);
 		}
 		else if (projectileType == ProjectileType.TurretBullet) {
 			transform.Translate(Vector3.forward * dt * speed);

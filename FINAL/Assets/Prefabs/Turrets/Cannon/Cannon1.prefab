@@ -301,9 +301,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projectileObject: {fileID: 100000, guid: 5a6d7f2126cd82b458612609d6d37cb0, type: 2}
   muzzleEffect: {fileID: 100000, guid: eb70177154bfd754c8e40c77467cdfb2, type: 2}
-  reloadTime: .300000012
+  reloadTime: .75
   radius: 0
   damage: 1
+  damageStage: 0
+  towerPrice: 10
   targetObject: {fileID: 0}
   muzzlePositions:
   - {fileID: 400000}

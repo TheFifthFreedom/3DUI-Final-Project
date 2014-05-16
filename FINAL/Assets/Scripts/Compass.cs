@@ -1,21 +1,31 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Compass2 : MonoBehaviour {
+public class Compass : MonoBehaviour {
 
-	Camera cam;
-	GameObject target;
+	private Camera cam;
+	private GameObject target;
+
+	public GameObject arrow;
 
 	// Use this for initialization
 	void Start () {
 		cam = GameObject.Find("MiniMapCamera").camera;
-		target = GameObject.Find ("Main Camera");
-		transform.renderer.material.color = Color.red;
+		target = Camera.main.gameObject;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	
+
+		Vector3 viewPos = cam.WorldToViewportPoint(target.transform.position);
+		//Debug.Log ("viewPos: " + viewPos);
+		arrow.renderer.enabled = !(viewPos.x > 0.05f && viewPos.x < 0.95f && viewPos.y > 0.05f && viewPos.y < 0.95f);
+		//Debug.Log ("active: " + arrow.renderer.enabled);
+
+		gameObject.transform.LookAt(Camera.main.transform);
+		gameObject.transform.eulerAngles = new Vector3(0, gameObject.transform.eulerAngles.y, 0);
+
+	/*
 		renderer.enabled = false;
 		
 		Vector3 v3Pos = cam.WorldToViewportPoint(target.transform.position);
@@ -39,6 +49,6 @@ public class Compass2 : MonoBehaviour {
 		v3Pos.y = 0.5f * Mathf.Cos (fAngle) + 0.5f;  //   side of viewport
 		v3Pos.z = cam.nearClipPlane + 100f;  // Looking from neg to pos Z;
 		transform.position = cam.ViewportToWorldPoint(v3Pos);
-
+	*/
 	}
 }

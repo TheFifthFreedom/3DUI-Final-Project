@@ -4,18 +4,11 @@ using System.Collections.Generic;
 
 public class PathScript : MonoBehaviour {
 
-	public GameObject[] waypoints;
-	private Vector3[] points;
-	private LinkedList<Vector3> pathPointsList;
+	public GameObject[] paths;
 
 	// Use this for initialization
 	void Start () {
-		points = new Vector3[waypoints.Length];
-		pathPointsList = new LinkedList<Vector3>();
-		for (int i = 0; i < waypoints.Length; i++) {
-			points[i] = waypoints[i].transform.position;
-			pathPointsList.AddLast(points[i]);
-		}
+
 	}
 	
 	// Update is called once per frame
@@ -23,11 +16,12 @@ public class PathScript : MonoBehaviour {
 	
 	}
 
-	public Vector3[] GetPoints() {
-		return points;
-	}
-
-	public LinkedList<Vector3> GetPathPoints() {
+	public LinkedList<Vector3> GetRandomPath() {
+		GameObject choosePath = paths[Random.Range(0, paths.Length)];
+		LinkedList<Vector3> pathPointsList = new LinkedList<Vector3>();
+		for (int i = 0; i < choosePath.transform.childCount; i++) {
+			pathPointsList.AddLast(choosePath.transform.GetChild(i).transform.position);
+		}
 		return new LinkedList<Vector3>(pathPointsList);
 	}
 }

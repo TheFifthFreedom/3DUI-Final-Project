@@ -9,8 +9,9 @@ public class TowerController : MonoBehaviour {
 	public GameObject projectileObject;
 	public GameObject muzzleEffect;
 	public float reloadTime;
-	public float radius;
-	public float damage;
+	public float range, startRange;
+	public int damage, damageStage;
+	public int towerPrice;
 	public Transform targetObject;
 	public Transform[] muzzlePositions;
 	public Transform turretHead;
@@ -23,11 +24,24 @@ public class TowerController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		firingQueue = new LinkedList<GameObject>();
+		if (towerType == TowerController.TowerType.Cannon) {
+			towerPrice = UIController.PRICE_CANNON;
+			reloadTime = 0.3f;
+		}
+		else if (towerType == TowerController.TowerType.Launcher) {
+			towerPrice = UIController.PRICE_ROCKET;
+			reloadTime = 0.5f;
+		}
+		else if (towerType == TowerController.TowerType.Radiator) {
+			towerPrice = UIController.PRICE_RADIATOR;
+			reloadTime = 0.7f;
+		}
+		range = GetComponent<SphereCollider>().radius * transform.localScale.y;
+		damageStage = 1;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
 		if (firingQueue.Count > 0) {
 			while (firingQueue.First.Value == null) {
 				firingQueue.RemoveFirst();
@@ -77,6 +91,7 @@ public class TowerController : MonoBehaviour {
 				GameObject projectile = (GameObject) Instantiate(projectileObject, mPos.position, mPos.rotation);
 				projectile.transform.parent = this.transform;
 				projectile.GetComponent<ProjectileController>().target = firingQueue.First.Value.transform;
+				projectile.GetComponent<ProjectileController>().range = range;
 			}
 		}
 		if (towerType == TowerType.Cannon) {
